@@ -35,12 +35,17 @@
      
     //继承了 SuperType 
     SubType.prototype = new SuperType(); 
+    // new 实际上让SuperType的实例SubType.prototype指向了SuperType.prototype
+    // SuperType的实例中的属性和方法，添加到 SubType.prototype 
+
+    // 实际上就是用new SuperType()覆盖了Subtype.prototype
      
     SubType.prototype.getSubValue = function (){ 
         return this.subproperty; 
     }; 
      
-    var instance = new SubType(); 
+    var instance = new SubType();
+
     alert(instance.getSuperValue());      //true
 
 
@@ -86,7 +91,8 @@
      
     function SubType(){   
         //继承了 SuperType 
-        SuperType.call(this); 
+        SuperType.call(this);
+        //相当于  this.colors = ["red", "blue", "green"]; 
     } 
      
     var instance1 = new SubType(); 
@@ -139,6 +145,10 @@
      
     //继承方法 
     SubType.prototype = new SuperType(); 
+    // new 干了两件事
+    // SubType.prototype 放入了 SuperType.prototype
+    // SubType.prototype 放入了 this.age = age;等
+
     SubType.prototype.constructor = SubType; 
     SubType.prototype.sayAge = function(){ 
         alert(this.age); 
@@ -156,22 +166,40 @@
     instance2.sayAge();           //27
   */  
 
+  // 组合继承避免了原型链和借用构造函数的缺陷，成为 JavaScript中最常用的继承模式
+  // instanceof 和 isPrototypeOf()也能够用于识别基于组合继承创建的对象
 
-// 6.3.4 原型式继承 
+// 6.3.4 原型式继承  不同于 6.3.1 原型链
 
   /*  
     function object(o){ 
         function F(){} 
         F.prototype = o; 
-        return new F(); 
+        return new F();  
     }
+
+    // 和原型链比较
+    // 原型链 是 
+    //   通过 SubType.prototype = new SuperType() 进行了赋值,
+    //     让SubType.prototype指向SuperType.prototype, SubType.prototype拥有SuperType()的内容
+    //   通过var instance = new SubType(); 
+    //     instance指向SubType.prototype, instance拥有SubType()的内容
+    // 原型式继承 是 
+    //   通过 F.prototype = o 进行了赋值,
+    //     让F.prototype 赋值为 o
+    //   通过return new F(); var anotherPerson = object(person)
+    //     让 anotherPerson指向F.prototype, anoterPerson拥有F()的内容
+    
+    // 相同:都执行了 *.prototype = * ,都执行了 new
+    // 不同:原型链 执行了两次new ,从构造函数开始构建
+    //      原型式继承 执行了一次new, 直接从 o 实例开始构建
 
     var person = { 
         name: "Nicholas", 
         friends: ["Shelby", "Court", "Van"] 
     }; 
      
-    var anotherPerson = object(person); 
+    var anotherPerson = object(person); // 这个新对象将 person 作为原型
     anotherPerson.name = "Greg"; 
     anotherPerson.friends.push("Rob"); 
      
@@ -213,6 +241,26 @@
     }); 
          
     alert(anotherPerson.name); //"Greg
+  */ 
+
+// 6.3.5 寄生式继承 
+
+  /*  
+    function createAnother(original){ 
+        var clone = object(original);  //通过调用函数创建一个新对象 
+        clone.sayHi = function(){      //增强这个对象, 相当于Object.create()第二个参数
+            alert("hi"); 
+        }; 
+        return clone;                  //返回这个对象 
+    }
+
+    var person = { 
+        name: "Nicholas", 
+        friends: ["Shelby", "Court", "Van"] 
+    }; 
+     
+    var anotherPerson = createAnother(person); 
+    anotherPerson.sayHi(); //"hi"
   */  
 
 // 6.3.6 寄生组合式继承
